@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Depositar</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    html,body { height:100%; margin:0; background:#fff; }
+    .wrap { min-height:100%; display:flex; align-items:center; justify-content:center; }
+    .card { width:min(360px,92vw); border:1px solid #e5e7eb; border-radius:16px; padding:18px; }
+    .title { margin:0 0 8px; font-weight:700; font-size:18px; }
+    .sub { margin:0 0 16px; color:#6b7280; font-size:12px; }
+    .seg { margin-bottom:14px; }
+    label { display:block; font-size:12px; color:#374151; margin-bottom:6px; }
+    .devices { display:flex; gap:6px; }
+    .btn-dev { flex:1; padding:10px; border:1px solid #d1d5db; background:#fff; border-radius:10px; cursor:pointer; font-weight:600; font-size:14px; }
+    .btn-dev.active { border-color:#111827; }
+    input[type="number"] { width:100%; padding:11px; border:1px solid #d1d5db; border-radius:10px; font-size:16px; }
+    .btn-prim { width:100%; padding:12px; border-radius:12px; border:0; background:#111827; color:#fff; font-weight:700; cursor:pointer; font-size:15px; margin-top:8px; }
+    .foot { margin-top:10px; font-size:12px; color:#6b7280; text-align:center; }
+    .status { margin-top:10px; font-size:12px; text-align:center; }
+    .ok { color:#16a34a; } .err { color:#dc2626; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1 class="title">Depositar</h1>
+      <p class="sub">Selecciona el dispositivo y el monto.</p>
+
+      <div class="seg">
+        <label>Dispositivo</label>
+        <div class="devices" id="devices">
+          <button type="button" class="btn-dev" data-sn="2507280002">...0002</button>
+          <button type="button" class="btn-dev" data-sn="2507280003">...0003</button>
+          <button type="button" class="btn-dev" data-sn="2507280001">...0001</button>
+        </div>
+      </div>
+
+      <div class="seg">
+        <label for="amount">Depositar</label>
+        <input id="amount" type="number" step="0.01" min="0" placeholder="0.00" inputmode="decimal" />
+      </div>
+
+      <button id="accept" class="btn-prim">Aceptar</button>
+
+      <div id="status" class="status"></div>
+      <div class="foot" id="foot"></div>
+    </div>
+  </div>
+
+  <script>
+    // Limpia SW y caches para evitar caché
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())); }
+    try { caches && caches.keys && caches.keys().then(keys => keys.forEach(k => caches.delete(k))); } catch {}
+
+    const $ = id => document.getElementById(id);
+    const devicesEl = document.getElementById('devices');
+    const statusEl = $('status');
+    const footEl = $('foot');
+
+    // Proxy en 5050
+    const API_KEY = '817px4p7td9gs5zl14nej6';
+    const PROXY = 'http://181.188.187.194/:5050';
+
+    let selectedSN = null;
+
+    devicesEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-dev');
+      if (!btn) return;
+      document.querySelectorAll('.btn-dev').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedSN = btn.dataset.sn;
+      footEl.textContent = `Dispositivo seleccionado: ${selectedSN}`;
+      statusEl.textContent = '';
+      statusEl.className = 'status';
+    });
+
+    function genRequestId() {
+      const now = new Date();
+      const p = n => String(n).padStart(2,'0');
+      return `REQ_${now.getFullYear()}${p(now.getMonth()+1)}${p(now.getDate())}_${p(now.getHours())}${p(now.getMinutes())}${p(now.getSeconds())}${String(now.getMilliseconds()).padStart(3,'0')}_${Math.floor(Math.random()*1e4)}`;
+    }
+
+    async function send() {
+      statusEl.textContent = '';
+      statusEl.className = 'status';
+
+      if (!selectedSN) {
+        statusEl.textContent = 'Selecciona un dispositivo.';
+        statusEl.classList.add('err');
+        return;
+      }
+      const val = Number($('amount').value);
+      if (!Number.isFinite(val) || val < 0) {
+        statusEl.textContent = 'Monto inválido.';
+        statusEl.classList.add('err');
+        return;
+      }
+
+      const payload = {
+        deviceNumber: selectedSN,
+        amount: Number(val.toFixed(2)),
+        requestId: genRequestId(),
+        timeStamp: Math.floor(Date.now()/1000)
+      };
+
+      try {
+        const r = await fetch(`${PROXY}/api/payment_broadcast?_ts=${Date.now()}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+          body: JSON.stringify({ payload, apiKey: API_KEY }),
+          cache: 'no-store'
+        });
+        const text = await r.text();
+        let data; try { data = JSON.parse(text); } catch { data = text; }
+
+        if (r.ok) {
+          statusEl.textContent = 'Enviado correctamente.';
+          statusEl.classList.add('ok');
+        } else {
+          statusEl.textContent = `Error HTTP ${r.status}`;
+          statusEl.classList.add('err');
+        }
+        console.log('Respuesta:', data);
+      } catch (err) {
+        statusEl.textContent = 'Error de red/CORS.';
+        statusEl.classList.add('err');
+      }
+    }
+
+    $('accept').addEventListener('click', send);
+
+    // Selección por defecto y anti-cache en back/forward
+    window.addEventListener('load', () => {
+      document.querySelector('.btn-dev[data-sn="2507280002"]').click();
+      if ('performance' in window && performance.getEntriesByType) {
+        const nav = performance.getEntriesByType('navigation')[0];
+        if (nav && nav.type === 'back_forward') {
+          location.replace(location.href.split('#')[0] + `#${Date.now()}`);
+        }
+      }
+    });
+  </script>
+</body>
+</html>
