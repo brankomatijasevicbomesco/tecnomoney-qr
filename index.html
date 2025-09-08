@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <title>Depositar</title>
+  <title>Demo - Deposito QR</title>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -12,44 +12,53 @@
     html,body { height:100%; margin:0; background:#fff; }
     .wrap { min-height:100%; display:flex; align-items:center; justify-content:center; }
     .card { width:min(360px,92vw); border:1px solid #e5e7eb; border-radius:16px; padding:18px; }
-    .title { margin:0 0 8px; font-weight:700; font-size:18px; }
+	.logo {margin:auto;display: flex; justify-content: center;}
+	.logoad {margin:auto;display: flex; justify-content: center;}
+    .title { margin:0 0 8px; font-weight:700; font-size:18px; color: #003E7A; }
     .sub { margin:0 0 16px; color:#6b7280; font-size:12px; }
     .seg { margin-bottom:14px; }
     label { display:block; font-size:12px; color:#374151; margin-bottom:6px; }
     .devices { display:flex; gap:6px; }
-    .btn-dev { flex:1; padding:10px; border:1px solid #d1d5db; background:#fff; border-radius:10px; cursor:pointer; font-weight:600; font-size:14px; }
-    .btn-dev.active { border-color:#111827; }
-    input[type="number"] { width:100%; padding:11px; border:1px solid #d1d5db; border-radius:10px; font-size:16px; }
-    .btn-prim { width:100%; padding:12px; border-radius:12px; border:0; background:#111827; color:#fff; font-weight:700; cursor:pointer; font-size:15px; margin-top:8px; }
+    .btn-dev { flex:1; padding:10px; border:1px solid #003E7A; background:#fff; border-radius:10px; cursor:pointer; font-weight:600; font-size:14px; color:#003E7A; }
+    .btn-dev.active { border-color:#F3D600; background:#F3D600; }
+    input[type="number"] { width:96%; padding:11px; border:1px solid #d1d5db; border-radius:10px; font-size:16px; }
+    .btn-prim { width:100%; padding:12px; border-radius:12px; border:0; background:#003E7A; color:#fff; font-weight:700; cursor:pointer; font-size:15px; margin-top:8px; }
+	    .btn-prim:hover { width:100%; padding:12px; border-radius:12px; border:0; background:#F3D600; color:#003E7A; font-weight:700; cursor:pointer; font-size:15px; margin-top:8px; }
     .foot { margin-top:10px; font-size:12px; color:#6b7280; text-align:center; }
     .status { margin-top:10px; font-size:12px; text-align:center; }
     .ok { color:#16a34a; } .err { color:#dc2626; }
+	.lower { font-size: 10px; font-style: italic;}
   </style>
 </head>
 <body>
   <div class="wrap">
+
     <div class="card">
-      <h1 class="title">Depositar</h1>
-      <p class="sub">Selecciona el dispositivo y el monto.</p>
+  <img class="logo" src="https://www.bisa.com/sites/all/themes/bisa/images/Logo_Banco_BISA.png" width="65%"><br>
+      <h1 class="title">Pago por QR - Banco BISA</h1>
+      <p class="sub">Selecciona el dispositivo y el monto:</p>
 
       <div class="seg">
-        <label>Dispositivo</label>
+        <label>Dispositivo:</label>
         <div class="devices" id="devices">
-          <button type="button" class="btn-dev" data-sn="2507280002">...0002</button>
-          <button type="button" class="btn-dev" data-sn="2507280003">...0003</button>
-          <button type="button" class="btn-dev" data-sn="2507280001">...0001</button>
+		  <button type="button" class="btn-dev" data-sn="2507280001">Grande...0001</button>
+          <button type="button" class="btn-dev" data-sn="2507280002">Mediano...0002</button>
+          <button type="button" class="btn-dev" data-sn="2507280003">Pequeño...0003</button>
+
         </div>
       </div>
 
       <div class="seg">
-        <label for="amount">Depositar</label>
+        <label for="amount">Pagar Bs.:</label>
         <input id="amount" type="number" step="0.01" min="0" placeholder="0.00" inputmode="decimal" />
       </div>
 
-      <button id="accept" class="btn-prim">Aceptar</button>
+      <button id="accept" class="btn-prim">Pagar</button>
 
       <div id="status" class="status"></div>
       <div class="foot" id="foot"></div>
+	 <br><p class="lower">Una tecnología provista por:</p>
+	  <img class="logoad" src="https://adbomesco.com/wp-content/uploads/2025/07/ad-bomesco-logo-NEW-horizontal.png" width="35%">
     </div>
   </div>
 
